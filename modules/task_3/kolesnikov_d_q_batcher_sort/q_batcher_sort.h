@@ -12,6 +12,7 @@
 #include <cstring>
 
 using std::swap;
+int GenRndNum();
 int* MergeArr(int* a, int* b);
 void SeqQuickSort(int* data, int l, int r);
 void PrlQuickSort(int* data, int count);

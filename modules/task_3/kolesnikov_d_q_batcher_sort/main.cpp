@@ -11,27 +11,38 @@ using std::vector;
 TEST(Q_BATCHER_SORT, empty) {
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  vector<int> a = {5};
-  vector<int> sort = SeqQuickSort(&a[0], 0, a.size());
+  int a[0];
+  int size = 0;
+  SeqQuickSort(a, 0, size);
   if (rank == 0) {
-      ASSERT_EQ(vector<int>(), sort);
+      ASSERT_EQ(0, sizeof(a)/sizeof(int));
   }
 }
 
 
 
-// TEST(Q_BATCHER_SORT, sort_small_arr) {
-//   int rank;
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//   vector<int> arr = {5, 1, 3};
-//   vector<int> sorted_arr = {1, 3, 5};
-//   vector<int> sort = PrlQuickSort(arr.data(), arr.size());
-//   if (rank == 0) {
-//       vector<int> seq_sort = SeqQuickSort(arr.data(), 0, arr.size()-1);
-//       ASSERT_EQ(seq_sort, sort);
-//       ASSERT_EQ(seq_sort, sorted_arr);
-//   }
-// }
+TEST(Q_BATCHER_SORT, sort_small_arr) {
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  int size = 16;
+  int* arr = new int[size];
+  for (int i = 0; i < size; i++) {
+    arr[i] = GenRndNum();
+  }
+  PrlQuickSort(arr, size);
+  int* sort = new int[size];
+  for (int i = 0; i < size; i++) {
+    sort[i] = arr[i];
+  }
+  if (rank == 0) {
+      SeqQuickSort(arr, 0, size);
+      for (int i = 0; i < size; i++) {
+        EXPECT_EQ(sort[i], arr[i]);
+      }
+      delete [] arr;
+      delete [] sort;
+  }
+}
 
 
 // TEST(Q_BATCHER_SORT, sort_big_arr_1) {
@@ -39,14 +50,14 @@ TEST(Q_BATCHER_SORT, empty) {
 //   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 //   vector<int> arr = { 15, 70, 17, 68, 78, 63, 18, 21, 92, 2};
 //   vector<int> sorted_arr = { 2, 15, 17, 18, 21, 63, 68, 70, 78, 92};
-//   vector<int> sort = PrlQuickSort(arr, arr.size());
+//   PrlQuickSort(arr.data(), arr.size());
+//   vector<int> sort(arr);
 //   if (rank == 0) {
-//       vector<int> seq_sort = SeqQuickSort(arr, 0, arr.size()-1);
-//       ASSERT_EQ(seq_sort, sort);
-//       ASSERT_EQ(seq_sort, sorted_arr);
+//       SeqQuickSort(arr.data(), 0, arr.size()-1);
+//       ASSERT_EQ(sort, arr);
+//       ASSERT_EQ(sort, sorted_arr);
 //   }
 // }
-
 
 
 // TEST(Q_BATCHER_SORT, sort_big_arr_2) {
@@ -65,11 +76,12 @@ TEST(Q_BATCHER_SORT, empty) {
 //       68, 69, 70, 73, 74, 76, 77, 83, 83, 86, 87, 88, 90,
 //       92, 94, 94, 96, 97, 98, 99};
 
-//   vector<int> sort = PrlQuickSort(arr, arr.size());
+//   PrlQuickSort(arr.data(), arr.size());
+//   vector<int> sort(arr);
 //   if (rank == 0) {
-//       vector<int> seq_sort = SeqQuickSort(arr, 0, arr.size()-1);
-//       ASSERT_EQ(seq_sort, sort);
-//       ASSERT_EQ(seq_sort, sorted_arr);
+//       SeqQuickSort(arr.data(), 0, arr.size()-1);
+//       ASSERT_EQ(sort, arr);
+//       ASSERT_EQ(sort, sorted_arr);
 //   }
 // }
 
@@ -96,11 +108,12 @@ TEST(Q_BATCHER_SORT, empty) {
 //       73, 74, 75, 75, 76, 77, 77, 77, 79, 79, 80, 81, 83, 83, 84, 84,
 //       84, 84, 87, 88, 92, 92, 92, 92, 92, 93, 93, 93, 97, 98, 98, 99};
 
-//   vector<int> sort = PrlQuickSort(arr, arr.size());
+//   PrlQuickSort(arr.data(), arr.size());
+//   vector<int> sort(arr);
 //   if (rank == 0) {
-//       vector<int> seq_sort = SeqQuickSort(arr, 0, arr.size()-1);
-//       ASSERT_EQ(seq_sort, sort);
-//       ASSERT_EQ(seq_sort, sorted_arr);
+//       SeqQuickSort(arr.data(), 0, arr.size()-1);
+//       ASSERT_EQ(sort, arr);
+//       ASSERT_EQ(sort, sorted_arr);
 //   }
 // }
 

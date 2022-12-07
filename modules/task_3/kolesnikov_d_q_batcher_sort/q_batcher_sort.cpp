@@ -1,9 +1,13 @@
 // Copyright 2022 Kolesnikov Denis
 
-#include "../../modules/task_3/kolesnikov_d_q_batcher_sort/q_batcher_sort.h"
+#include "../../../modules/task_3/kolesnikov_d_q_batcher_sort/q_batcher_sort.h"
 
 
-
+int GenRndNum() {
+  std::random_device dev;
+  std::mt19937_64 gen(dev());
+  return gen() % 100;
+}
 void Compare(int* a, int i, int j) {
   if (a[i] > a[j]) {
     swap(a[i], a[j]);
@@ -13,7 +17,7 @@ void Compare(int* a, int i, int j) {
 int* MergeArr(int* arr1, int* arr2) {
   int size1 = sizeof(arr1)/sizeof(int);
   int size2 = sizeof(arr2)/sizeof(int);
-  int * result = new int[size1 + size2];
+  int* result = new int[size1 + size2];
   std::copy(arr1, arr1 + size1, result);
   std::copy(arr2, arr2 + size2, result + size1);
   return result;
@@ -60,7 +64,7 @@ void PrlQuickSort(int* data, int count) {
   MPI_Comm_size(MPI_COMM_WORLD, &number_of_process);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Status status;
-  int chunk_size= (count % number_of_process == 0) ?
+  int chunk_size = (count % number_of_process == 0) ?
         (count /
         number_of_process) :
         (count /
@@ -68,7 +72,6 @@ void PrlQuickSort(int* data, int count) {
   int* chunk = new int[chunk_size];
   MPI_Scatter(data, chunk_size, MPI_INT, chunk,
         chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
-
   delete [] data;
   data = nullptr;
   int own_chunk_size = (count >= chunk_size*(rank + 1))
@@ -82,7 +85,6 @@ void PrlQuickSort(int* data, int count) {
       MPI_Send(chunk, own_chunk_size, MPI_INT, rank - step, 0, MPI_COMM_WORLD);
       break;
     }
-
     if (rank + step < number_of_process) {
       int received_chunk_size = (count >= chunk_size * (rank + 2 * step))
           ? (chunk_size * step)
