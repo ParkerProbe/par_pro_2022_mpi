@@ -8,12 +8,11 @@
 #include <mpi.h>
 #include <time.h>
 #include <random>
-#include <vector>
+#include <iostream>
+#include <cstring>
 
-
-using std::vector;
 using std::swap;
-
+int* MergeArr(int* a, int* b);
 void SeqQuickSort(int* data, int l, int r);
 void PrlQuickSort(int* data, int count);
 void BatcherMerge(int* a, int l, int n, int r);
