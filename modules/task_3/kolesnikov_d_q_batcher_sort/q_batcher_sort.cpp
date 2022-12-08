@@ -3,7 +3,7 @@
 #include "../../../modules/task_3/kolesnikov_d_q_batcher_sort/q_batcher_sort.h"
 
 
-vector<int> GenRndARR(int size) {
+vector<int> GenRndArr(int size) {
   std::random_device dev;
   std::mt19937_64 gen(dev());
   vector<int> result;

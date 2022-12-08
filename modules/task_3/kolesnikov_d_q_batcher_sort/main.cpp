@@ -16,7 +16,7 @@ TEST(Q_BATCHER_SORT, SORT_SEQ) {
   MPI_Comm_size(MPI_COMM_WORLD, &num);
   if (log2(num) == static_cast<int>(log2(num))) {
     if (rank == 0) {
-        vector<int> arr = GenRndARR(100);
+        vector<int> arr = GenRndArr(100);
         SeqQuickSort(&arr, 0, arr.size());
         for (int i = 0; i < arr.size() - 1; i++) {
             EXPECT_TRUE(arr[i] <= arr[i + 1]);
@@ -25,21 +25,21 @@ TEST(Q_BATCHER_SORT, SORT_SEQ) {
   }
 }
 
-TEST(Q_BATCHER_SORT, BATHCER_MERGE_CORRECT) {
+TEST(Q_BATCHER_SORT, BATCHER_MERGE_CORRECT) {
   int rank, num;
-  int size = 1000;
+  int size = 100;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num);
   if (log2(num) == static_cast<int>(log2(num))) {
     if (rank == 0) {
+      vector<int> arr1 = GenRndArr(size);
+      vector<int> arr2 = GenRndArr(size);
+      SeqQuickSort(&arr1, 0, size);
+      SeqQuickSort(&arr2, 0, size);
       vector<vector<int>> array;
-      for (int i = 0; i < 8; i++) {
-        array.push_back(GenRndARR(size));
-      }
-      for (int i = 0; i < 8; i++) {
-        SeqQuickSort(&array[i], 0, size);
-      }
-      vector<int> res = Merge(array);
+      array.push_back(arr1);
+      array.push_back(arr2);
+      auto res = Merge(array);
       for (int i = 0; i < static_cast<int>(res.size()) - 1; i++) {
         EXPECT_TRUE(res[i] <= res[i + 1]);
       }
@@ -54,7 +54,7 @@ TEST(Q_BATCHER_SORT, SORT_SMALL) {
   if (log2(num) == static_cast<int>(log2(num))) {
     vector<int> temp;
     if (rank == 0) {
-      temp = GenRndARR(4);
+      temp = GenRndArr(4);
     }
     temp = PrlQuickSort(temp, 4);
     if (rank == 0) {
@@ -74,7 +74,7 @@ TEST(Q_BATCHER_SORT, SORT_BIG) {
   if (log2(num) == static_cast<int>(log2(num))) {
     vector<int> tmp;
     if (rank == 0) {
-      tmp = GenRndARR(size);
+      tmp = GenRndArr(size);
     }
     tmp = PrlQuickSort(tmp, size);
     if (rank == 0) {
@@ -93,7 +93,7 @@ TEST(Q_BATCHER_SORT, SORT_VERY_BIG) {
   if (log2(num) == static_cast<int>(log2(num))) {
     vector<int> tmp;
     if (rank == 0) {
-      tmp = GenRndARR(size);
+      tmp = GenRndArr(size);
     }
     tmp = PrlQuickSort(tmp, size);
     if (rank == 0) {

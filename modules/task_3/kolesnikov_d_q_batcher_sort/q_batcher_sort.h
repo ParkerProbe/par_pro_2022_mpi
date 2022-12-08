@@ -10,7 +10,7 @@
 using std::vector;
 using std::swap;
 
-vector<int> GenRndARR(int size);
+vector<int> GenRndArr(int size);
 void Compare(vector<int>* a, int i, int j);
 vector<int> Merge(vector<vector<int>> v);
 void BatcherMerge(vector<int>* a, int n, int l = 0, int r = 1);
