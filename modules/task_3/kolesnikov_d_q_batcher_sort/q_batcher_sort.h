@@ -2,14 +2,10 @@
 #ifndef MODULES_TASK_3_KOLESNIKOV_D_Q_BATCHER_SORT_Q_BATCHER_SORT_H_
 #define MODULES_TASK_3_KOLESNIKOV_D_Q_BATCHER_SORT_Q_BATCHER_SORT_H_
 
-#include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <mpi.h>
-#include <time.h>
 #include <random>
 #include <iostream>
-#include <cstring>
 #include <vector>
 using std::vector;
 using std::swap;
