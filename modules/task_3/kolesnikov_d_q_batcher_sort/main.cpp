@@ -27,7 +27,7 @@ TEST(Q_BATCHER_SORT, SORT_SEQ) {
 
 TEST(Q_BATCHER_SORT, BATCHER_MERGE_CORRECT) {
   int rank, num;
-  int size = 100;
+  int size = 2;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num);
   if (log2(num) == static_cast<int>(log2(num))) {
@@ -36,10 +36,10 @@ TEST(Q_BATCHER_SORT, BATCHER_MERGE_CORRECT) {
       vector<int> arr2 = GenRndArr(size);
       SeqQuickSort(&arr1, 0, size);
       SeqQuickSort(&arr2, 0, size);
-      vector<vector<int>> array;
-      array.push_back(arr1);
-      array.push_back(arr2);
-      auto res = Merge(array);
+      vector<int> res(2*size);
+      std::move(arr1.begin(), arr1.end(), res.begin());
+      std::move(arr2.begin(), arr2.end(), res.begin() + size);
+      BatcherMerge(&res, res.size());
       for (int i = 0; i < static_cast<int>(res.size()) - 1; i++) {
         EXPECT_TRUE(res[i] <= res[i + 1]);
       }

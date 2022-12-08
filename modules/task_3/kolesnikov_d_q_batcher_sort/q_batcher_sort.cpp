@@ -32,18 +32,17 @@ void BatcherMerge(vector<int>* a, int n, int l, int r) {
   }
 }
 vector<int> Merge(vector<vector<int>> v) {
-    while (v.size() != 1) {
-        for (int i = 0; i < v.size(); i++) {
-            vector<int> tmp = v[i];
-            tmp.insert(tmp.end(), v[i+1].begin(), v[i+1].end());
-            BatcherMerge(&tmp, tmp.size());
-            v[i] = tmp;
-            v.erase(v.begin() + i);
-        }
-    }
-    return v[0];
+  while (v.size() != 1) {
+      for (int i = 0; i < v.size(); i++) {
+          vector<int> tmp = v[i];
+          tmp.insert(tmp.end(), v[i+1].begin(), v[i+1].end());
+          BatcherMerge(&tmp, tmp.size());
+          v[i] = tmp;
+          v.erase(v.begin() + i);
+      }
+  }
+  return v[0];
 }
-
 
 void SeqQuickSort(vector<int>* data, int l, int r) {
   if (l < r) {
@@ -77,9 +76,9 @@ vector<int> PrlQuickSort(vector<int> data, int size) {
   int chunk_size = size / number_of_process;
   vector<int> chunk(chunk_size);
   vector<int> result;
-  chunk_size = (size >= chunk_size*(rank + 1))
-    ? chunk_size
-    : (size - chunk_size*rank);
+  // chunk_size = (size >= chunk_size*(rank + 1))
+  //   ? chunk_size
+  //   : (size - chunk_size*rank);
 
   MPI_Scatter(data.data(), chunk_size, MPI_INT, chunk.data(),
         chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
@@ -93,9 +92,9 @@ vector<int> PrlQuickSort(vector<int> data, int size) {
     vector<vector<int>> all;
     all.push_back(chunk);
     for (int i = 1; i < number_of_process; i++) {
-        MPI_Recv(chunk.data(), chunk_size, MPI_INT,
-            i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-        all.push_back(chunk);
+      MPI_Recv(chunk.data(), chunk_size, MPI_INT,
+          i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+      all.push_back(chunk);
     }
     vector<int> result = Merge(all);
   }
