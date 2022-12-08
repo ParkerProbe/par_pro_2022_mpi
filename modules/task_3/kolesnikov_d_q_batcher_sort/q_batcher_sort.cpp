@@ -13,33 +13,32 @@ vector<int> GenRndArr(int size) {
   }
   return result;
 }
-void Compare(vector<int>* a, int i, int j) {
-  if ((*a)[i] > (*a)[j]) {
-    swap((*a)[i], (*a)[j]);
-  }
-}
 
-void BatcherMerge(vector<int>* a, int n, int l, int r) {
-  int m = r * 2;
-  if (m < n) {
-    BatcherMerge(a, l, n, m);
-    BatcherMerge(a, l + r, n, m);
-    for (int i = l + r; i + r < l + n; i+=m) {
-      Compare(a, i, i + r);
+
+void BatcherMerge(vector<int>* arr, int n, int lo, int r) {
+    int m = r * 2;
+    if (m < n) {
+      BatcherMerge(arr, n, lo, m);
+      BatcherMerge(arr, n, lo + r, m);
+      for (int i = lo + r; i + r < lo + n; i += m) {
+          if ((*arr)[i] > (*arr)[i + r])
+              std::swap((*arr)[i], (*arr)[i + r]);
+      }
+    } else {
+      if ((*arr)[lo] > (*arr)[lo + r]) {
+          std::swap((*arr)[lo], (*arr)[lo+r]);
+      }
     }
-  } else {
-    Compare(a, l, l + r);
-  }
 }
 vector<int> Merge(vector<vector<int>> v) {
   while (v.size() != 1) {
-      for (int i = 0; i < v.size(); i++) {
-          vector<int> tmp = v[i];
-          tmp.insert(tmp.end(), v[i+1].begin(), v[i+1].end());
-          BatcherMerge(&tmp, tmp.size());
-          v[i] = tmp;
-          v.erase(v.begin() + i);
-      }
+    for (int i = 0; i < static_cast<int>(v.size()); i++) {
+        vector<int> tmp = v[i];
+        tmp.insert(tmp.end(), v[i+1].begin(), v[i+1].end());
+        BatcherMerge(&tmp, tmp.size());
+        v[i] = tmp;
+        v.erase(v.begin() + i);
+    }
   }
   return v[0];
 }
@@ -85,7 +84,6 @@ vector<int> PrlQuickSort(vector<int> data, int size) {
 
   SeqQuickSort(&chunk, 0, chunk_size);
 
-
   if (rank != 0) {
     MPI_Send(chunk.data(), chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
   } else {
@@ -98,6 +96,5 @@ vector<int> PrlQuickSort(vector<int> data, int size) {
     }
     vector<int> result = Merge(all);
   }
-
   return result;
 }

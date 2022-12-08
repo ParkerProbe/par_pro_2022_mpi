@@ -47,7 +47,7 @@ TEST(Q_BATCHER_SORT, BATCHER_MERGE_CORRECT) {
   }
 }
 
-TEST(Q_BATCHER_SORT, SORT_SMALL) {
+TEST(Q_BATCHER_SORT, SORT_4) {
   int rank, num;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num);
@@ -66,9 +66,9 @@ TEST(Q_BATCHER_SORT, SORT_SMALL) {
 }
 
 
-TEST(Q_BATCHER_SORT, SORT_BIG) {
+TEST(Q_BATCHER_SORT, SORT_100) {
   int rank, num;
-  int size = 10000;
+  int size = 100;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num);
   if (log2(num) == static_cast<int>(log2(num))) {
@@ -85,9 +85,9 @@ TEST(Q_BATCHER_SORT, SORT_BIG) {
   }
 }
 
-TEST(Q_BATCHER_SORT, SORT_VERY_BIG) {
+TEST(Q_BATCHER_SORT, SORT_1280) {
   int rank, num;
-  int size = 128000;
+  int size = 1280;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num);
   if (log2(num) == static_cast<int>(log2(num))) {
