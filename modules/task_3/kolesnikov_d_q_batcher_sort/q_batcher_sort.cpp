@@ -14,15 +14,15 @@ vector<int> GenRndArr(int size) {
   return result;
 }
 
-
 void BatcherMerge(vector<int>* arr, int n, int lo, int r) {
     int m = r * 2;
     if (m < n) {
       BatcherMerge(arr, n, lo, m);
       BatcherMerge(arr, n, lo + r, m);
+
       for (int i = lo + r; i + r < lo + n; i += m) {
-          if ((*arr)[i] > (*arr)[i + r])
-              std::swap((*arr)[i], (*arr)[i + r]);
+        if ((*arr)[i] > (*arr)[i + r])
+            std::swap((*arr)[i], (*arr)[i + r]);
       }
     } else {
       if ((*arr)[lo] > (*arr)[lo + r]) {
@@ -31,16 +31,12 @@ void BatcherMerge(vector<int>* arr, int n, int lo, int r) {
     }
 }
 vector<int> Merge(vector<vector<int>> v) {
-  while (v.size() != 1) {
-    for (int i = 0; i < static_cast<int>(v.size()); i++) {
-        vector<int> tmp = v[i];
-        tmp.insert(tmp.end(), v[i+1].begin(), v[i+1].end());
-        BatcherMerge(&tmp, tmp.size());
-        v[i] = tmp;
-        v.erase(v.begin() + i);
-    }
+  vector<int> res(v.size()*v[0].size());
+  for (int i = 0; i < v.size(); i++) {
+    std::move(v[i].begin(), v[i].end(), res.begin() + i*v.size());
   }
-  return v[0];
+  BatcherMerge(&res, res.size());
+  return res;
 }
 
 void SeqQuickSort(vector<int>* data, int l, int r) {
@@ -75,9 +71,9 @@ vector<int> PrlQuickSort(vector<int> data, int size) {
   int chunk_size = size / number_of_process;
   vector<int> chunk(chunk_size);
   vector<int> result;
-  // chunk_size = (size >= chunk_size*(rank + 1))
-  //   ? chunk_size
-  //   : (size - chunk_size*rank);
+  chunk_size = (size >= chunk_size*(rank + 1))
+    ? chunk_size
+    : (size - chunk_size*rank);
 
   MPI_Scatter(data.data(), chunk_size, MPI_INT, chunk.data(),
         chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
