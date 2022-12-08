@@ -10,12 +10,14 @@
 #include <random>
 #include <iostream>
 #include <cstring>
-
+#include <vector>
+using std::vector;
 using std::swap;
-int GenRndNum();
-int* MergeArr(int* a, int* b);
-void SeqQuickSort(int* data, int l, int r);
-void PrlQuickSort(int* data, int count);
-void BatcherMerge(int* a, int l, int n, int r);
-void Compare(int* a, int i, int j);
+
+vector<int> GenRndARR(int size);
+void Compare(vector<int>* a, int i, int j);
+vector<int> Merge(vector<vector<int>> v);
+void BatcherMerge(vector<int>* a, int n, int l = 0, int r = 1);
+void SeqQuickSort(vector<int>* data, int l, int r);
+vector<int>  PrlQuickSort(vector<int> data, int size);
 #endif  // MODULES_TASK_3_KOLESNIKOV_D_Q_BATCHER_SORT_Q_BATCHER_SORT_H_

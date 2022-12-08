@@ -3,27 +3,23 @@
 #include "../../../modules/task_3/kolesnikov_d_q_batcher_sort/q_batcher_sort.h"
 
 
-int GenRndNum() {
+vector<int> GenRndARR(int size) {
   std::random_device dev;
   std::mt19937_64 gen(dev());
-  return gen() % 100;
+  vector<int> result;
+  std::uniform_int_distribution<int> dist(0, 1000);
+  for (int i = 0; i < size; i++) {
+    result.push_back(dist(gen));
+  }
+  return result;
 }
-void Compare(int* a, int i, int j) {
-  if (a[i] > a[j]) {
-    swap(a[i], a[j]);
+void Compare(vector<int>* a, int i, int j) {
+  if ((*a)[i] > (*a)[j]) {
+    swap((*a)[i], (*a)[j]);
   }
 }
 
-int* MergeArr(int* arr1, int* arr2) {
-  int size1 = sizeof(arr1)/sizeof(int);
-  int size2 = sizeof(arr2)/sizeof(int);
-  int* result = new int[size1 + size2];
-  std::copy(arr1, arr1 + size1, result);
-  std::copy(arr2, arr2 + size2, result + size1);
-  return result;
-}
-
-void BatcherMerge(int* a, int l, int n, int r) {
+void BatcherMerge(vector<int>* a, int n, int l, int r) {
   int m = r * 2;
   if (m < n) {
     BatcherMerge(a, l, n, m);
@@ -35,18 +31,30 @@ void BatcherMerge(int* a, int l, int n, int r) {
     Compare(a, l, l + r);
   }
 }
+vector<int> Merge(vector<vector<int>> v) {
+    while (v.size() != 1) {
+        for (int i = 0; i < v.size(); i++) {
+            vector<int> tmp = v[i];
+            tmp.insert(tmp.end(), v[i+1].begin(), v[i+1].end());
+            BatcherMerge(&tmp, tmp.size());
+            v[i] = tmp;
+            v.erase(v.begin() + i);
+        }
+    }
+    return v[0];
+}
 
 
-void SeqQuickSort(int* data, int l, int r) {
+void SeqQuickSort(vector<int>* data, int l, int r) {
   if (l < r) {
-    double pivot = data[l];
+    double pivot = (*data)[l];
     int p = l;
     for (int i=l+1; i < r; i++)
-      if (data[i] < pivot) {
+      if ((*data)[i] < pivot) {
         p++;
-        swap(data[i], data[p]);
+        swap((*data)[i], (*data)[p]);
       }
-    swap(data[l], data[p]);
+    swap((*data)[l], (*data)[p]);
     SeqQuickSort(data, l, p);
     SeqQuickSort(data, p+1, r);
   }
@@ -54,52 +62,43 @@ void SeqQuickSort(int* data, int l, int r) {
 
 
 
-void PrlQuickSort(int* data, int count) {
-  if (count == 0) {
-    return;
+vector<int> PrlQuickSort(vector<int> data, int size) {
+  if (size == 0) {
+    return vector<int>();
   }
   int number_of_process;
   int rank;
 
   MPI_Comm_size(MPI_COMM_WORLD, &number_of_process);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
   MPI_Status status;
-  int chunk_size = (count % number_of_process == 0) ?
-        (count /
-        number_of_process) :
-        (count /
-        number_of_process - 1);
-  int* chunk = new int[chunk_size];
-  MPI_Scatter(data, chunk_size, MPI_INT, chunk,
+
+  int chunk_size = size / number_of_process;
+  vector<int> chunk(chunk_size);
+  vector<int> result;
+  chunk_size = (size >= chunk_size*(rank + 1))
+    ? chunk_size
+    : (size - chunk_size*rank);
+
+  MPI_Scatter(data.data(), chunk_size, MPI_INT, chunk.data(),
         chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
-  delete [] data;
-  data = nullptr;
-  int own_chunk_size = (count >= chunk_size*(rank + 1))
-      ? chunk_size
-      : (count - chunk_size*rank);
 
-  SeqQuickSort(chunk, 0, own_chunk_size);
+  SeqQuickSort(&chunk, 0, chunk_size);
 
-  for (int step = 1; step < number_of_process; step = 2 * step) {
-    if (rank % (2 * step) != 0) {
-      MPI_Send(chunk, own_chunk_size, MPI_INT, rank - step, 0, MPI_COMM_WORLD);
-      break;
+
+  if (rank != 0) {
+    MPI_Send(chunk.data(), chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
+  } else {
+    vector<vector<int>> all;
+    all.push_back(chunk);
+    for (int i = 1; i < number_of_process; i++) {
+        MPI_Recv(chunk.data(), chunk_size, MPI_INT,
+            i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+        all.push_back(chunk);
     }
-    if (rank + step < number_of_process) {
-      int received_chunk_size = (count >= chunk_size * (rank + 2 * step))
-          ? (chunk_size * step)
-          : (count - chunk_size * (rank + step));
-      int* chunk_received = new int[received_chunk_size];
-      MPI_Recv(chunk_received, received_chunk_size,
-          MPI_INT, rank + step, 0,
-          MPI_COMM_WORLD, &status);
-      data = MergeArr(chunk, chunk_received);
-      BatcherMerge(data, 0, (sizeof(data)/sizeof(int)) - 1, 1);
-      delete [] chunk;
-      delete [] chunk_received;
-      chunk = data;
-      own_chunk_size = own_chunk_size + received_chunk_size;
-    }
+    vector<int> result = Merge(all);
   }
-  return;
+
+  return result;
 }
