@@ -66,33 +66,28 @@ void SeqQuickSort(vector<int>* data, int l, int r) {
 
 
 vector<int> PrlQuickSort(vector<int> arr, int size) {
-    int procNum, rank;
-    MPI_Comm_size(MPI_COMM_WORLD, &procNum);
+    int proc_num, rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &proc_num);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    int chunk_size = size / proc_num;
+    vector<int> chunk(chunk_size); 
+    vector<int> result;
 
-    int sizeOfBuff = size / procNum;
-    vector<int> localVector, result;
-
-    localVector.resize(sizeOfBuff);
-
-    MPI_Scatter(arr.data(), sizeOfBuff, MPI_INT, localVector.data(),
-        sizeOfBuff, MPI_INT, 0, MPI_COMM_WORLD);
-    SeqQuickSort(&localVector, 0, localVector.size());
-
+    MPI_Scatter(arr.data(), chunk_size, MPI_INT,
+     chunk.data(), chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
+    SeqQuickSort(&chunk, 0, chunk.size());
     if (rank != 0) {
-        MPI_Send(localVector.data(), sizeOfBuff, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(chunk.data(), chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
     } else {
-        vector<vector<int>> vectorOfVal;
-        vectorOfVal.push_back(localVector);
+        vector<vector<int>> all;
+        all.push_back(chunk);
 
-        for (int i = 1; i < procNum; ++i) {
-            MPI_Recv(localVector.data(), sizeOfBuff,
-                MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-            vectorOfVal.push_back(localVector);
+        for (int i = 1; i < proc_num; ++i) {
+            MPI_Recv(chunk.data(), chunk_size,
+                MPI_INT, i, 0, MPI_COMM_WORLD, 0);
+            all.push_back(chunk);
         }
-
-        result = Merge(vectorOfVal);
+        result = Merge(all);
     }
-
     return result;
 }
