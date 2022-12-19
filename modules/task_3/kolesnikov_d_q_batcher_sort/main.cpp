@@ -8,7 +8,7 @@
 using std::vector;
 
 
-TEST(Q_BATCHER_SORT, SORT_SEQ) {
+TEST(Q_BATCHER_SORT, QUICK_SORT_SEQ) {
   int size = 100;
   int rank;
   int num;
@@ -47,16 +47,17 @@ TEST(Q_BATCHER_SORT, BATCHER_MERGE_CORRECT) {
   }
 }
 
-TEST(Q_BATCHER_SORT, SORT_4) {
+TEST(Q_BATCHER_SORT, SORT_SMALL) {
   int rank, num;
+  int size = pow(2,2);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num);
   if (log2(num) == static_cast<int>(log2(num))) {
     vector<int> temp;
     if (rank == 0) {
-      temp = GenRndArr(4);
+      temp = GenRndArr(size);
     }
-    temp = PrlQuickSort(temp, 4);
+    temp = PrlQuickSort(temp, size);
     if (rank == 0) {
       for (int i = 0; i < static_cast<int>(temp.size()) - 1; i++) {
           EXPECT_TRUE(temp[i] <= temp[i + 1]);
@@ -65,46 +66,43 @@ TEST(Q_BATCHER_SORT, SORT_4) {
   }
 }
 
-
-TEST(Q_BATCHER_SORT, SORT_100) {
+TEST(SORT_SHELL_BATCHER, SORT_BIG) {
   int rank, num;
-  int size = 100;
+  int size = pow(2,4);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num);
   if (log2(num) == static_cast<int>(log2(num))) {
-    vector<int> tmp;
-    if (rank == 0) {
-      tmp = GenRndArr(size);
-    }
-    tmp = PrlQuickSort(tmp, size);
-    if (rank == 0) {
-      for (int i = 0; i < static_cast<int>(tmp.size()) - 1; i++) {
-          EXPECT_TRUE(tmp[i] <= tmp[i + 1]);
+      vector<int> temp;
+      if (rank == 0) {
+          temp = GenRndArr(size);
       }
-    }
+      temp = PrlQuickSort(temp, size);
+      if (rank == 0) {
+          for (int i = 0; i < static_cast<int>(temp.size()) - 1; i++) {
+              EXPECT_TRUE(temp[i] <= temp[i + 1]);
+          }
+      }
   }
 }
 
-TEST(Q_BATCHER_SORT, SORT_1280) {
+TEST(SORT_SHELL_BATCHER, SORT_VERY_BIG) {
   int rank, num;
-  int size = 1280;
+  int size = pow(2,10);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &num);
   if (log2(num) == static_cast<int>(log2(num))) {
-    vector<int> tmp;
-    if (rank == 0) {
-      tmp = GenRndArr(size);
-    }
-    tmp = PrlQuickSort(tmp, size);
-    if (rank == 0) {
-      for (int i = 0; i < static_cast<int>(tmp.size()) - 1; i++) {
-          EXPECT_TRUE(tmp[i] <= tmp[i + 1]);
+      vector<int> temp;
+      if (rank == 0) {
+          temp = GenRndArr(size);
       }
-    }
+      temp = PrlQuickSort(temp, size);
+      if (rank == 0) {
+          for (int i = 0; i < static_cast<int>(temp.size()) - 1; i++) {
+              EXPECT_TRUE(temp[i] <= temp[i + 1]);
+          }
+      }
   }
 }
-
-
 
 
 int main(int argc, char **argv) {

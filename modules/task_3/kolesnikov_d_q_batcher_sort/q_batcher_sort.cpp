@@ -14,30 +14,40 @@ vector<int> GenRndArr(int size) {
   return result;
 }
 
-void BatcherMerge(vector<int>* arr, int n, int lo, int r) {
-    int m = r * 2;
-    if (m < n) {
-      BatcherMerge(arr, n, lo, m);
-      BatcherMerge(arr, n, lo + r, m);
-
-      for (int i = lo + r; i + r < lo + n; i += m) {
-        if ((*arr)[i] > (*arr)[i + r])
-            std::swap((*arr)[i], (*arr)[i + r]);
-      }
-    } else {
-      if ((*arr)[lo] > (*arr)[lo + r]) {
-          std::swap((*arr)[lo], (*arr)[lo+r]);
-      }
-    }
-}
-vector<int> Merge(vector<vector<int>> v) {
-  vector<int> res(v.size()*v[0].size());
-  for (int i = 0; i < v.size(); i++) {
-    std::move(v[i].begin(), v[i].end(), res.begin() + i*v.size());
+void Compare(vector<int>* a, int i, int j) {
+  if ((*a)[i] > (*a)[j]) {
+    swap((*a)[i], (*a)[j]);
   }
-  BatcherMerge(&res, res.size());
-  return res;
 }
+
+
+void BatcherMerge(vector<int>* arr, int n, int l, int r) {
+  int m = r * 2;
+  if (m < n) {
+    BatcherMerge(arr, n, l, m);
+    BatcherMerge(arr, n, l + r, m);
+    for (int i = l + r; i + r < l + n; i += m) {
+      Compare(arr, i, i+r);
+    }
+  } else {
+      Compare(arr, l, l+r);
+  }
+}
+
+
+vector<int> Merge(vector<vector<int>> vectors) {
+  while (vectors.size() != 1) {
+    for (int i = 0; i < vectors.size(); i++) {
+      auto temp = vectors[i];
+      temp.insert(temp.end(),
+          vectors[i + 1].begin(), vectors[i + 1].end());
+      BatcherMerge(&temp, temp.size());
+      vectors[i] = temp;
+      vectors.erase(vectors.begin() + i);
+    }
+  }
+  return vectors[0];
+} 
 
 void SeqQuickSort(vector<int>* data, int l, int r) {
   if (l < r) {
@@ -55,42 +65,34 @@ void SeqQuickSort(vector<int>* data, int l, int r) {
 }
 
 
+vector<int> PrlQuickSort(vector<int> arr, int size) {
+    int procNum, rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &procNum);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-vector<int> PrlQuickSort(vector<int> data, int size) {
-  if (size == 0) {
-    return vector<int>();
-  }
-  int number_of_process;
-  int rank;
+    int sizeOfBuff = size / procNum;
+    vector<int> localVector, result;
 
-  MPI_Comm_size(MPI_COMM_WORLD, &number_of_process);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    localVector.resize(sizeOfBuff);
 
-  MPI_Status status;
+    MPI_Scatter(arr.data(), sizeOfBuff, MPI_INT, localVector.data(),
+        sizeOfBuff, MPI_INT, 0, MPI_COMM_WORLD);
+    SeqQuickSort(&localVector, 0, localVector.size());
 
-  int chunk_size = size / number_of_process;
-  vector<int> chunk(chunk_size);
-  vector<int> result;
-  chunk_size = (size >= chunk_size*(rank + 1))
-    ? chunk_size
-    : (size - chunk_size*rank);
+    if (rank != 0) {
+        MPI_Send(localVector.data(), sizeOfBuff, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    } else {
+        vector<vector<int>> vectorOfVal;
+        vectorOfVal.push_back(localVector);
 
-  MPI_Scatter(data.data(), chunk_size, MPI_INT, chunk.data(),
-        chunk_size, MPI_INT, 0, MPI_COMM_WORLD);
+        for (int i = 1; i < procNum; ++i) {
+            MPI_Recv(localVector.data(), sizeOfBuff,
+                MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+            vectorOfVal.push_back(localVector);
+        }
 
-  SeqQuickSort(&chunk, 0, chunk_size);
-
-  if (rank != 0) {
-    MPI_Send(chunk.data(), chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
-  } else {
-    vector<vector<int>> all;
-    all.push_back(chunk);
-    for (int i = 1; i < number_of_process; i++) {
-      MPI_Recv(chunk.data(), chunk_size, MPI_INT,
-          i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-      all.push_back(chunk);
+        result = Merge(vectorOfVal);
     }
-    vector<int> result = Merge(all);
-  }
-  return result;
+
+    return result;
 }
